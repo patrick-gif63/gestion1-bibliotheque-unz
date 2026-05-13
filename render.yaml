@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: bibliotheque-unz
+    env: java
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar -Dspring.profiles.active=prod target/bibliotheque-1.0.0.jar
+    envVars:
+      - key: DATABASE_URL
+        value: jdbc:mysql://VOTRE_HOST_PLANETSCALE/bibliotheque_unz?useSSL=true
+      - key: DATABASE_USERNAME
+        value: VOTRE_USERNAME_PLANETSCALE
+      - key: DATABASE_PASSWORD
+        value: VOTRE_MOT_DE_PASSE_PLANETSCALE
+      - key: JWT_SECRET
+        value: VotreCleSecreteTresLonguePourJWT256bitsPourLaProduction
+      - key: MAIL_USERNAME
+        value: votre.email@gmail.com
+      - key: MAIL_PASSWORD
+        value: VotreMotDePasseApplication

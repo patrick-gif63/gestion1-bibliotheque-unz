@@ -1,0 +1,199 @@
+@startuml DiagrammeCasUtilisation
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor LightBlue
+  BorderColor Navy
+  ArrowColor Navy
+}
+
+actor Etudiant as E
+actor Bibliothecaire as B
+actor Administrateur as A
+actor "Système Email" as SE
+
+rectangle "Système Bibliothèque UNZ" {
+  usecase "S'inscrire" as UC01
+  usecase "Se connecter" as UC02
+  usecase "Rechercher ouvrage" as UC03
+  usecase "Voir détail ouvrage" as UC04
+  usecase "Emprunter ouvrage" as UC05
+  usecase "Réserver ouvrage" as UC06
+  usecase "Consulter historique" as UC07
+  usecase "Voir pénalités" as UC08
+  usecase "Ajouter ouvrage" as UC09
+  usecase "Modifier ouvrage" as UC10
+  usecase "Supprimer ouvrage" as UC11
+  usecase "Enregistrer emprunt" as UC12
+  usecase "Enregistrer retour" as UC13
+  usecase "Appliquer pénalité" as UC14
+  usecase "Envoyer notification" as UC15
+  usecase "Gérer utilisateurs" as UC16
+  usecase "Voir statistiques" as UC17
+  usecase "Gérer catégories" as UC18
+}
+
+E --> UC01
+E --> UC02
+E --> UC03
+E --> UC04
+E --> UC05
+E --> UC06
+E --> UC07
+E --> UC08
+
+B --> UC02
+B --> UC09
+B --> UC10
+B --> UC11
+B --> UC12
+B --> UC13
+B --> UC14
+B --> UC15
+
+A --> UC02
+A --> UC16
+A --> UC17
+A --> UC18
+
+UC15 --> SE
+@enduml
+
+' ─────────────────────────────────────────────────────────────────────────────
+' COPIEZ CHAQUE BLOC @startuml...@enduml SÉPARÉMENT SUR plantuml.com
+' ─────────────────────────────────────────────────────────────────────────────
+
+@startuml DiagrammeClasses
+skinparam classBackgroundColor LightYellow
+skinparam classBorderColor DarkBlue
+
+class Utilisateur {
+  - id: Long
+  - nom: String
+  - prenom: String
+  - email: String
+  - motDePasse: String
+  - role: Role
+  - actif: Boolean
+  + seConnecter(): boolean
+  + getNomComplet(): String
+}
+
+class Ouvrage {
+  - id: Long
+  - titre: String
+  - isbn: String
+  - anneePublication: int
+  - nbExemplaires: int
+  - nbDisponibles: int
+  + estDisponible(): boolean
+  + decrementerDisponibles(): void
+  + incrementerDisponibles(): void
+}
+
+class Auteur {
+  - id: Long
+  - nom: String
+  - prenom: String
+  - biographie: String
+}
+
+class Categorie {
+  - id: Long
+  - nom: String
+  - rayon: String
+  - description: String
+}
+
+class Exemplaire {
+  - id: Long
+  - cote: String
+  - etat: EtatExemplaire
+  - disponible: boolean
+}
+
+class Emprunt {
+  - id: Long
+  - dateEmprunt: LocalDate
+  - dateRetourPrevue: LocalDate
+  - dateRetourEffective: LocalDate
+  - statut: StatutEmprunt
+  + estEnRetard(): boolean
+  + calculerJoursRetard(): long
+  + calculerPenalite(): double
+}
+
+class Reservation {
+  - id: Long
+  - dateReservation: LocalDateTime
+  - statut: StatutReservation
+  - dateExpiration: LocalDate
+}
+
+class Penalite {
+  - id: Long
+  - montant: double
+  - dateCalcul: LocalDate
+  - payee: boolean
+  - joursRetard: long
+}
+
+enum Role { ETUDIANT, BIBLIOTHECAIRE, ADMINISTRATEUR }
+enum StatutEmprunt { EN_COURS, RETOURNE, EN_RETARD }
+enum StatutReservation { ACTIVE, SATISFAITE, EXPIREE, ANNULEE }
+enum EtatExemplaire { BON, ABIME, PERDU }
+
+Utilisateur --> Role
+Utilisateur "1" --> "*" Emprunt : effectue
+Utilisateur "1" --> "*" Reservation : crée
+Utilisateur "1" --> "*" Penalite : accumule
+
+Ouvrage "*" --> "*" Auteur : écrit par
+Ouvrage "*" --> "1" Categorie : appartient
+Ouvrage "1" --> "*" Exemplaire : possède
+Ouvrage "1" --> "*" Reservation
+
+Exemplaire "1" --> "*" Emprunt : fait objet
+Emprunt "1" --> "0..1" Penalite : génère
+Emprunt --> StatutEmprunt
+Reservation --> StatutReservation
+Exemplaire --> EtatExemplaire
+@enduml
+
+@startuml DiagrammeSequenceEmprunt
+actor Etudiant
+participant "Interface Web" as UI
+participant "EmpruntController" as EC
+participant "EmpruntService" as ES
+participant "OuvrageRepository" as OR
+participant "ExemplaireRepository" as ExR
+participant "EmpruntRepository" as ER
+participant "NotificationService" as NS
+
+Etudiant -> UI : Clique sur 'Emprunter'
+UI -> EC : POST /api/emprunts?ouvrageId=1&etudiantId=5
+EC -> ES : creerEmprunt(1, 5)
+ES -> OR : findById(1)
+OR --> ES : Ouvrage{titre, nbDisponibles=1}
+ES -> ES : verifier estDisponible()
+
+alt Ouvrage disponible
+  ES -> ES : verifier penalites etudiant
+  ES -> ExR : findByOuvrageIdAndDisponibleTrue(1)
+  ExR --> ES : Exemplaire{cote='INF-001-A'}
+  ES -> OR : save(ouvrage - nbDisponibles)
+  ES -> ExR : save(exemplaire.disponible=false)
+  ES -> ER : save(newEmprunt)
+  ER --> ES : Emprunt{id=42, dateRetour=J+14}
+  ES -> NS : planifierRappelRetour(emprunt)
+  NS --> ES : email envoyé
+  ES --> EC : Emprunt DTO
+  EC --> UI : 201 Created + EmpruntDTO
+  UI --> Etudiant : ✅ Emprunt enregistré - Retour le [date]
+
+else Ouvrage indisponible
+  ES --> EC : RuntimeException("indisponible")
+  EC --> UI : 409 Conflict
+  UI --> Etudiant : ❌ Indisponible - Voulez-vous réserver ?
+end
+@enduml
