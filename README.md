@@ -1,7 +1,7 @@
 # 📚 Application de Gestion de Bibliothèque Universitaire
 
 **Université Norbert Zongo** — Génie Logiciel L3 — Semestre 5  
-Enseignant : Dr OUEDRAOGO Moïse | Date de rendu : **24/05/2026**
+Enseignant : Dr OUEDRAOGO Moïse 
 
 ---
 
@@ -74,12 +74,12 @@ mvn test jacoco:report
 
 | Rôle | Nom |
 |------|-----|
-| Product Owner | [Nom] |
-| Scrum Master | [Nom] |
-| Développeur Backend 1 | [Nom] |
-| Développeur Backend 2 | [Nom] |
-| Développeur Frontend | [Nom] |
-| Testeur / Rapport | [Nom] |
+| Product Owner | [PATRICK] |
+| Scrum Master | [BRUNO] |
+| Développeur Backend 1 | [OUMAR] |
+| Développeur Backend 2 | [ZACKARIA] |
+| Développeur Frontend | [MOUSSA] |
+| Testeur / Rapport | [OUEDRAGO] |
 
 ---
 
