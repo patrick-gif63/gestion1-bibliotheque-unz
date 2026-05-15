@@ -74,8 +74,8 @@ mvn test jacoco:report
 
 | Rôle | Nom |
 |------|-----|
-| Product Owner | [PATRICK] |
-| Scrum Master | [BRUNO] |
+| Product Owner | [@patrick-gif63] |
+| Scrum Master | [@msebogo15-lang] |
 | Développeur Backend 1 | [OUMAR] |
 | Développeur Backend 2 | [ZACKARIA] |
 | Développeur Frontend | [MOUSSA] |
